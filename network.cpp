@@ -242,10 +242,15 @@ void compsize(matrix a, matrix b)
 
 matrix matrixify(vector<vector<double>> vec)
 {
+    cout << 1 << endl;
     matrix m;
+    cout << 2 << endl;
     m.rows = vec.size();
+    cout << 3 << endl;
     m.cols = vec[0].size();
+    cout << 4 << endl;
     m.data = vec;
+    cout << 5 << endl;
     return m;
 }
 
@@ -311,19 +316,15 @@ struct neuralnetwork : public matrix
             nodes[0].zinit();
             for (int i = 0; i < numlayers - 1; ++i)
             {
-                cout << 0;
                 biases[i].rows = numnodes[i+1];
                 biases[i].cols = 1;
                 biases[i].rinit();
-                cout << 1;
                 weights[i].rows = numnodes[i+1];
                 weights[i].cols = numnodes[i];
                 weights[i].rinit();
-                cout << 2;
                 nodes[i + 1].rows = numnodes[i+1];
                 nodes[i + 1].cols = 1;
                 nodes[i + 1].zinit();
-                cout << 3;
             }
         }
         void resetnodes()
@@ -478,9 +479,7 @@ struct neuralnetwork : public matrix
                     dCdW[l].mulall(alpha);
                     weights[numlayers-1-l].sub(dCdW[l]);
                     dCdb[l].mulall(alpha);
-                    cout << 1;
                     biases[numlayers-1-l].sub(dCdb[l]);
-                    cout << 2;
                 }
                 if (epochs > 100)
                 {
@@ -543,15 +542,20 @@ vector<vector<double>> load_mnist_labels(const string& filename, int num_labels)
 }
 
 vector<matrix> getmnist() {
-    const int num_images = 60000; 
+    const int num_images = 100; 
     const int image_width = 28;
     const int image_height = 28;
     vector<matrix> inpu;
 
-    vector<vector<unsigned char>> images = load_mnist_images("train-images-idx3-ubyte", num_images, image_width, image_height);
-
+    vector<vector<unsigned char>> images = load_mnist_images("C:\\Users\\djuma\\OneDrive\\Documents\\CS\\DEV\\C++\\AI\\train-images.idx3-ubyte", num_images, image_width, image_height);
     images.resize(num_images);
+    int i = 0;
     for (const auto& image : images) {
+        ++i;
+        if ((i)%100 == 0)
+        {
+            cout << i << "/60000" << endl;
+        }
         vector<double> image_1d(image.begin(), image.end()); 
         for (auto& pixel : image_1d) {
             pixel = static_cast<double>(pixel) / 255.0f; 
@@ -576,8 +580,8 @@ int main()
     }
     else
     {
-        nn.numlayers = 20;
-        nn.numnodes = {784, 16, 16, 1};
+        nn.numlayers = 4;
+        nn.numnodes = {784, 16, 16, 10};
         nn.init();
         nn.save(fileloc);
     }
@@ -586,11 +590,16 @@ int main()
     if (dotrain == 1)
     {
         vector<matrix> input = getmnist();
-        vector<vector<double>> labels = load_mnist_labels("train-labels-idx1-ubyte", 60000);
-        for (int inputi = 0; inputi < input.size(); ++inputi)
+        cout << "Mnist data loaded." << endl;
+        vector<vector<double>> labels = load_mnist_labels("C:\\Users\\djuma\\OneDrive\\Documents\\CS\\DEV\\C++\\AI\\train-images.idx3-ubyte", 60000);
+        cout << "Mnist labels loaded." << endl;
+        cout << input.size() << endl;
+        for (int inputi = 0; inputi < 100; ++inputi)
         {
             nn.inputdata.push_back(input[inputi]);
-            nn.labels.push_back(matrixify({labels[inputi]}));
+            vector<double> lb = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
+            lb[labels[inputi][0]] = 1.;
+            nn.labels.push_back(matrixify({lb}));
         }
         nn.train(10,1);
         nn.save(fileloc);
