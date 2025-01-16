@@ -242,15 +242,10 @@ void compsize(matrix a, matrix b)
 
 matrix matrixify(vector<vector<double>> vec)
 {
-    cout << 1 << endl;
     matrix m;
-    cout << 2 << endl;
     m.rows = vec.size();
-    cout << 3 << endl;
     m.cols = vec[0].size();
-    cout << 4 << endl;
     m.data = vec;
-    cout << 5 << endl;
     return m;
 }
 
@@ -460,6 +455,7 @@ struct neuralnetwork : public matrix
                 vector<matrix> dCdb;
                 for (int mi = 0; mi < inputdata.size(); ++mi)
                 {
+                    cout << mi << endl;
                     feedforward(mi);
                     acost += cost(nodes.back(),labels[mi])/inputdata.size();
                     vector<vector<matrix>> dCs = backpropagation(nodes.back(),labels[mi],inputdata.size());
@@ -481,6 +477,7 @@ struct neuralnetwork : public matrix
                     dCdb[l].mulall(alpha);
                     biases[numlayers-1-l].sub(dCdb[l]);
                 }
+                save("C:\\Users\\djuma\\OneDrive\\Documents\\CS\\DEV\\C++\\AI\\test.nn");
                 if (epochs > 100)
                 {
                     if ((e+1) % 100 == 0)
@@ -520,21 +517,21 @@ vector<vector<unsigned char>> load_mnist_images(const string& filename, int num_
     return images;
 }
 
-vector<vector<double>> load_mnist_labels(const string& filename, int num_labels) {
+vector<double> load_mnist_labels(const string& filename, int num_labels) {
     ifstream file(filename, ios::binary);
     if (!file.is_open()) {
         cerr << "Error: Could not open label file: " << filename << endl;
         exit(1);
     }
 
-    vector<vector<double>> labels;
+    vector<double> labels;
     labels.reserve(num_labels);
 
     file.seekg(8, ios::beg); 
     for (int i = 0; i < num_labels; ++i) {
         unsigned char label;
         file.read(reinterpret_cast<char*>(&label), 1);
-        labels.push_back({label*1.0});
+        labels.push_back(label*1.0);
     }
 
     file.close();
@@ -542,7 +539,7 @@ vector<vector<double>> load_mnist_labels(const string& filename, int num_labels)
 }
 
 vector<matrix> getmnist() {
-    const int num_images = 100; 
+    const int num_images = 60000; 
     const int image_width = 28;
     const int image_height = 28;
     vector<matrix> inpu;
@@ -591,17 +588,21 @@ int main()
     {
         vector<matrix> input = getmnist();
         cout << "Mnist data loaded." << endl;
-        vector<vector<double>> labels = load_mnist_labels("C:\\Users\\djuma\\OneDrive\\Documents\\CS\\DEV\\C++\\AI\\train-images.idx3-ubyte", 60000);
-        cout << "Mnist labels loaded." << endl;
-        cout << input.size() << endl;
-        for (int inputi = 0; inputi < 100; ++inputi)
+        vector<double> labels = load_mnist_labels("C:\\Users\\djuma\\OneDrive\\Documents\\CS\\DEV\\C++\\AI\\train-images.idx3-ubyte", 60000);
+        cout << "Mnist labels loaded.\n Transfering to nerual network." << endl;
+        for (int inputi = 0; inputi < 60000; ++inputi)
         {
             nn.inputdata.push_back(input[inputi]);
             vector<double> lb = {0.,0.,0.,0.,0.,0.,0.,0.,0.,0.};
-            lb[labels[inputi][0]] = 1.;
-            nn.labels.push_back(matrixify({lb}));
+            matrix x;
+            x.rows = 1;
+            x.cols = 10;
+            x.data = {lb};
+            nn.labels.push_back(x.ttranspose());
         }
-        nn.train(10,1);
+        cout << "Started Training" << endl;
+        nn.train(3,0.1);
+        cout << "Training finished." << endl;
         nn.save(fileloc);
         }
         else
